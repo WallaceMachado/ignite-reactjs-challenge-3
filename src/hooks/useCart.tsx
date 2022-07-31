@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
 import { Product, Stock } from '../types';
@@ -32,7 +32,24 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
     return [];
   });
-  
+
+  // Cria uma ref utilizada para verificar se o cart foi ou não alterado apartir de indefinido ou nulo.
+  const prevCartRef = useRef<Product[]>();
+  useEffect(() => {
+    prevCartRef.current = cart;
+  });
+
+  // Essa comparação usando o ?? (nullish coalescing) que retorna o segundo valor caso o primeiro seja nulo ou indefinido
+  const cartPreviousValue = prevCartRef.current ?? cart;
+
+  useEffect(() => {
+    // Dessa forma o localStorage não é alterado no useEffect inicial, quando o valor do state é setado para o padrão.
+    if (cartPreviousValue !== cart) {
+      localStorage.setItem("@RocketShoes:cart", JSON.stringify(cart));
+    }
+
+    console.log("useEffect");
+  }, [cart, cartPreviousValue]);
 
   const addProduct = async (productId: number) => {
     try {
@@ -58,8 +75,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
         }
         updatedCart.push(newProduct);
       }
-      setCart(updatedCart);
-      localStorage.setItem('@RocketShoes:cart',JSON.stringify(updatedCart))
+      setCart(updatedCart);     
 
     } catch {
       toast.error('Erro na adição do produto');
@@ -73,8 +89,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
       if(productIndex>=0){
         updatedCart.splice(productIndex,1)
-        setCart(updatedCart);
-        localStorage.setItem('@RocketShoes:cart',JSON.stringify(updatedCart));
+        setCart(updatedCart);        
       }else{
         throw Error();  
       }     
@@ -101,8 +116,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       const productExists = updatedCart.find(prod => prod.id ===productId)
       if (productExists) {
         productExists.amount = amount; // já atualiza o updatedCart
-        setCart(updatedCart);
-      localStorage.setItem('@RocketShoes:cart',JSON.stringify(updatedCart))
+        setCart(updatedCart);     
       }else{
         throw Error()
       }      
