@@ -102,8 +102,9 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     productId,
     amount,
   }: UpdateProductAmount) => {
+    console.log("vjmspṽjkmlkv ", productId, "opfjs ifjspo ", amount)
     try {
-      if(amount < 0){
+      if(amount <= 0){
         return;
       }
       const stock = await api.get(`/stock/${productId}`);
